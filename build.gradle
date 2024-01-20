@@ -1,27 +1,33 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.2.3-SNAPSHOT'
-	id 'io.spring.dependency-management' version '1.1.4'
+    id 'java'
+    id 'org.springframework.boot' version '3.2.3-SNAPSHOT'
+    id 'io.spring.dependency-management' version '1.1.4'
 }
 
 group = 'org.mju-likelion'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	sourceCompatibility = '17'
+    sourceCompatibility = '17'
 }
 
 repositories {
-	mavenCentral()
-	maven { url 'https://repo.spring.io/milestone' }
-	maven { url 'https://repo.spring.io/snapshot' }
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'//JPA
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'//JDBC
+    runtimeOnly 'com.mysql:mysql-connector-j'//MySQL
+    compileOnly 'org.projectlombok:lombok'//Lombok
+    annotationProcessor 'org.projectlombok:lombok'//Lombok
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
