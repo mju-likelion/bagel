@@ -1,5 +1,6 @@
 package org.mjulikelion.bagel.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -34,11 +35,14 @@ public class Agreement {
     private byte sequence;
 
     @CreatedDate
+    @JsonIgnore
     private Date createdAt;
 
     @LastModifiedDate
+    @JsonIgnore
     private Date updatedAt;
 
     @OneToMany(mappedBy = "agreement", orphanRemoval = true)
+    @JsonIgnore
     private List<ApplicationAgreement> applicationAgreement;
 }

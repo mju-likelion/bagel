@@ -1,5 +1,6 @@
 package org.mjulikelion.bagel.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -40,5 +41,6 @@ public class Introduce {
     private Part part;
 
     @OneToMany(mappedBy = "introduce", orphanRemoval = true)
+    @JsonIgnore
     private List<ApplicationIntroduce> applicationIntroduce;
 }
