@@ -33,4 +33,7 @@ public class ApplicationIntroduce {
     @ManyToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "introduce_id")
     private Introduce introduce;
+
+    @Column(updatable = false, nullable = false, length = 2000)
+    private String content;
 }
