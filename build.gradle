@@ -24,6 +24,7 @@ dependencies {
     runtimeOnly 'com.mysql:mysql-connector-j'//MySQL
     compileOnly 'org.projectlombok:lombok'//Lombok
     annotationProcessor 'org.projectlombok:lombok'//Lombok
+    implementation 'org.springframework.boot:spring-boot-starter-validation'//Validation(Dto)
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
