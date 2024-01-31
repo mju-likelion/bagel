@@ -5,7 +5,7 @@
 # This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
 
-name: Java CI with Gradle
+name: Java CI/CD with Gradle
 
 on:
   push:
@@ -29,23 +29,52 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # 2. Spring Boot 애플리케이션 빌드
+      # 2. application.properties 파일 생성
+      - name: make application.properties
+        run: |
+          mkdir -p ./src/main/resources
+          cd ./src/main/resources
+          touch ./application.properties
+          echo "${{ secrets.PROPERTIES }}" > ./application.properties
+        shell: bash
+
+      # 3. Spring Boot 애플리케이션 빌드
       - name: Build with Gradle
         uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25 # v2.6.0
         with:
           arguments: clean bootJar
 
-      # 3. Docker 이미지 빌드
+      # 4. Docker 이미지 빌드
       - name: docker image build
         run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply .
 
-      # 4. DockerHub 로그인
+      # 5. DockerHub 로그인
       - name: docker login
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      # 5. Docker Hub 이미지 푸시
+      # 6. Docker Hub 이미지 푸시
       - name: docker Hub push
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply
+
+  # AWS ECR 에서 Docker 이미지를 가져와서 AWS ECS 에 배포하는 과정
+  deploy:
+    needs: build-docker-image
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged
+    steps:
+      - name: ssh connect & production
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{secrets.HOST}}
+          username: ${{secrets.USERNAME}}
+          key: ${{secrets.PASSWORD}}
+          script: |
+            sudo docker login --username ${{secrets.DOCKERHUB_USERNAME}} --password ${{secrets.DOCKERHUB_PASSWORD}}
+            sudo docker system prune -a --volumes -f
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply
+            sudo docker stop $(sudo docker ps -q) 2>/dev/null || true
+            sudo docker run --name likelion12th-apply --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply
+            sudo docker system prune -f
