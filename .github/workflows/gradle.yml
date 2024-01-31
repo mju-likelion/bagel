@@ -71,8 +71,8 @@ jobs:
           username: ${{secrets.USERNAME}}
           key: ${{secrets.PASSWORD}}
           script: |
-            docker login --username ${{secrets.DOCKERHUB_USERNAME}} --password ${{secrets.DOCKERHUB_PASSWORD}}
-            docker system prune -a --volumes -f
+            sudo docker login --username ${{secrets.DOCKERHUB_USERNAME}} --password ${{secrets.DOCKERHUB_PASSWORD}}
+            sudo docker system prune -a --volumes -f
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply
             sudo docker stop $(sudo docker ps -q) 2>/dev/null || true
             sudo docker run --name likelion12th-apply --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply
