@@ -75,5 +75,5 @@ jobs:
             docker system prune -a --volumes -f
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply
             sudo docker stop $(sudo docker ps -q) 2>/dev/null || true
-            sudo docker run --name github-actions-demo --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply
+            sudo docker run --name likelion12th-apply --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply
             sudo docker system prune -f
