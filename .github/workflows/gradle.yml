@@ -60,7 +60,7 @@ jobs:
 
   # AWS ECR 에서 Docker 이미지를 가져와서 AWS ECS 에 배포하는 과정
   deploy:
-    needs: build
+    needs: build-docker-image
     runs-on: ubuntu-latest
     steps:
       - name: ssh connect & production
