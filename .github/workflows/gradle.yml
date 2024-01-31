@@ -48,4 +48,4 @@ jobs:
 
       # 5. Docker Hub 이미지 푸시
       - name: docker Hub push
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-demo
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply
