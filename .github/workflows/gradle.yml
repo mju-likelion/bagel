@@ -10,8 +10,6 @@ name: Java CI/CD with Gradle
 on:
   push:
     branches: [ "develop" ]
-  pull_request:
-    branches: [ "develop" ]
 
 permissions:
   contents: read
@@ -46,7 +44,7 @@ jobs:
 
       # 4. Docker 이미지 빌드
       - name: docker image build
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply .
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_IMAGE }} .
 
       # 5. DockerHub 로그인
       - name: docker login
@@ -57,7 +55,7 @@ jobs:
 
       # 6. Docker Hub 이미지 푸시
       - name: docker Hub push
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_IMAGE }}
 
   # AWS ECR 에서 Docker 이미지를 가져와서 AWS ECS 에 배포하는 과정
   deploy:
@@ -73,7 +71,7 @@ jobs:
           script: |
             sudo docker login --username ${{secrets.DOCKERHUB_USERNAME}} --password ${{secrets.DOCKERHUB_PASSWORD}}
             sudo docker system prune -a --volumes -f
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_IMAGE }}
             sudo docker stop $(sudo docker ps -q) 2>/dev/null || true
-            sudo docker run --name likelion12th-apply --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/likelion12th-apply
+            sudo docker run --name ${{ secrets.DOCKERHUB_IMAGE }} --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_IMAGE }}
             sudo docker system prune -f
