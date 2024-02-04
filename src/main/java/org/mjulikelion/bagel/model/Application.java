@@ -49,7 +49,7 @@ public class Application {
     private String email;
 
     @Column
-    private byte grade;
+    private Byte grade;
 
     @Enumerated(EnumType.STRING)
     @Column
