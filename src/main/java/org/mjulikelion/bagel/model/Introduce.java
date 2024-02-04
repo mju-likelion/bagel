@@ -27,10 +27,10 @@ public class Introduce {
     private String title;
 
     @Column(name = "max_length", nullable = false)
-    private short maxLength;
+    private Short maxLength;
 
     @Column(nullable = false)
-    private byte sequence;
+    private Byte sequence;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
