@@ -3,7 +3,6 @@ package org.mjulikelion.bagel.controller;
 import jakarta.validation.Valid;
 import org.mjulikelion.bagel.dto.request.ApplicationSaveDto;
 import org.mjulikelion.bagel.dto.response.ResponseDto;
-import org.mjulikelion.bagel.dto.response.application.ApplicationExistResponseData;
 import org.mjulikelion.bagel.dto.response.application.ApplicationGetResponseData;
 import org.mjulikelion.bagel.model.Part;
 import org.mjulikelion.bagel.service.application.ApplicationCommandService;
@@ -34,12 +33,6 @@ public class ApplicationController {
     public ResponseEntity<ResponseDto<ApplicationGetResponseData>> getApplicationByPart(
             @PathVariable("part") Part part) {
         return this.applicationQueryService.getApplicationByPart(part);
-    }
-
-    @GetMapping("/exist/{userId}")
-    public ResponseEntity<ResponseDto<ApplicationExistResponseData>> getApplicationExist(
-            @PathVariable("userId") String userId) {
-        return this.applicationQueryService.getApplicationExist(userId);
     }
 
     @PostMapping()
