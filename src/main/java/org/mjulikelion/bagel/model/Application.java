@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,7 @@ public class Application {
     private UUID id;
 
     @Column(name = "user_id", nullable = false, length = 100)
+    @NotNull
     private String userId;
 
     @Column(length = 100)
