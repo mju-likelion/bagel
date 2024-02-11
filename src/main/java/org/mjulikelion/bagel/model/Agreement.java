@@ -3,6 +3,7 @@ package org.mjulikelion.bagel.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import java.util.Date;
@@ -13,12 +14,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "agreement")
+@EntityListeners(AuditingEntityListener.class)
 public class Agreement {
     @Id
     @Column(updatable = false, unique = true, nullable = false)
