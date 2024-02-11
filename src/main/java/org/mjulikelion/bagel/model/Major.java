@@ -1,5 +1,6 @@
 package org.mjulikelion.bagel.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -18,9 +19,13 @@ public class Major {
     @Column(updatable = false, unique = true, nullable = false)
     private String id;
 
-    @Column(name = "name", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String name;
 
+    @Column(nullable = false)
+    private byte sequence;
+
     @OneToMany(mappedBy = "major")
+    @JsonIgnore
     private List<Application> applications;
 }
