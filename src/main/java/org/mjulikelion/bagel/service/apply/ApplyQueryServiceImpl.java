@@ -14,9 +14,9 @@ public class ApplyQueryServiceImpl implements ApplyQueryService {
     private final ApplicationRepository applicationRepository;
 
     @Override
-    public ResponseEntity<ResponseDto<ApplyExistResponseData>> getApplyExist(String userId) {
+    public ResponseEntity<ResponseDto<ApplyExistResponseData>> getApplyExist(String studentId) {
         ApplyExistResponseData applicationExistResponse = ApplyExistResponseData.builder()
-                .isExist(this.applicationRepository.existsByUserId(userId))
+                .isExist(this.applicationRepository.existsByStudentId(studentId))
                 .build();
         return new ResponseEntity<>(ResponseDto.res(
                 HttpStatus.OK,

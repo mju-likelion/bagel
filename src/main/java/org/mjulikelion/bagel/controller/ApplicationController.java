@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import org.mjulikelion.bagel.dto.request.ApplicationSaveDto;
 import org.mjulikelion.bagel.dto.response.ResponseDto;
 import org.mjulikelion.bagel.dto.response.application.ApplicationGetResponseData;
-import org.mjulikelion.bagel.model.Part;
 import org.mjulikelion.bagel.service.application.ApplicationCommandService;
 import org.mjulikelion.bagel.service.application.ApplicationQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +30,7 @@ public class ApplicationController {
 
     @GetMapping("/{part}")
     public ResponseEntity<ResponseDto<ApplicationGetResponseData>> getApplicationByPart(
-            @PathVariable("part") Part part) {
+            @PathVariable("part") String part) {
         return this.applicationQueryService.getApplicationByPart(part);
     }
 

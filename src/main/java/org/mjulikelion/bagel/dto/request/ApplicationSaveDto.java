@@ -3,7 +3,6 @@ package org.mjulikelion.bagel.dto.request;
 import static org.mjulikelion.bagel.constant.RegexPatterns.APPLICATION_NAME_PATTERN;
 import static org.mjulikelion.bagel.constant.RegexPatterns.APPLICATION_PHONE_NUMBER_PATTERN;
 import static org.mjulikelion.bagel.constant.RegexPatterns.APPLICATION_STUDENT_ID_PATTERN;
-import static org.mjulikelion.bagel.constant.RegexPatterns.APPLICATION_USER_ID_PATTERN;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
@@ -21,22 +20,18 @@ import org.mjulikelion.bagel.util.annotaion.enumconstraint.EnumConstraint;
 @Getter
 public class ApplicationSaveDto {
     @NotNull
-    @Pattern(regexp = APPLICATION_USER_ID_PATTERN, message = "1")
-    private String userId;//지원 아이디
+    @Pattern(regexp = APPLICATION_STUDENT_ID_PATTERN)
+    private String studentId;//학번
 
     @NotNull
-    @Pattern(regexp = APPLICATION_NAME_PATTERN, message = "2")
+    @Pattern(regexp = APPLICATION_NAME_PATTERN)
     private String name;//이름
 
     @NotNull
     private String majorId;//학과 id
 
     @NotNull
-    @Pattern(regexp = APPLICATION_STUDENT_ID_PATTERN, message = "3")
-    private String studentId;//학번
-
-    @NotNull
-    @Pattern(regexp = APPLICATION_PHONE_NUMBER_PATTERN, message = "4")
+    @Pattern(regexp = APPLICATION_PHONE_NUMBER_PATTERN)
     private String phoneNumber;//전화번호
 
     @NotNull

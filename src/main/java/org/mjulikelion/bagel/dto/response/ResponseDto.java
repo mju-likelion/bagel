@@ -1,5 +1,6 @@
 package org.mjulikelion.bagel.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,8 +10,11 @@ import org.springframework.http.HttpStatus;
 @Builder
 @AllArgsConstructor
 public class ResponseDto<T> {
+    @JsonProperty
     private final int statusCode;
+    @JsonProperty
     private final String message;
+    @JsonProperty
     private final T data;
 
     public ResponseDto(final HttpStatus statusCode, final String resultMsg) {

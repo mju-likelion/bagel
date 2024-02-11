@@ -1,6 +1,7 @@
 package org.mjulikelion.bagel.service.application;
 
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.mjulikelion.bagel.dto.request.ApplicationSaveDto;
 import org.mjulikelion.bagel.dto.response.ResponseDto;
@@ -37,84 +38,144 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
     @Override
     @Transactional
     public ResponseEntity<ResponseDto<Void>> saveApplication(ApplicationSaveDto applicationSaveDto) {
-        if (this.applicationRepository.existsByUserId(applicationSaveDto.getUserId())) {
-            return new ResponseEntity<>(ResponseDto.res(
-                    HttpStatus.CONFLICT,
-                    "Already exists"
-            ), HttpStatus.CONFLICT);
-        }
-        Major major = this.majorRepository.findById(applicationSaveDto.getMajorId()).orElseThrow();
-
-        //지원서 생성
-        Application application = this.buildApplicationFromDto(applicationSaveDto, major);
-
-        //지원서 동의 항목 생성
-        List<ApplicationAgreement> agreements = this.applicationAgreementConvertor.convertMapToApplicationAgreement(
-                applicationSaveDto.getAgreements(),
-                application
-        );
-
-        //지원서 자기소개 생성
-        List<ApplicationIntroduce> introduces = this.applicationIntroduceConvertor.convertMapToApplicationIntroduce(
-                applicationSaveDto.getIntroduces(),
-                application
-        );
-
-        //지원서 동의 항목 유효성 검사
-        if (!this.isValidApplicationAgreement(agreements)) {
-            return new ResponseEntity<>(ResponseDto.res(
-                    HttpStatus.BAD_REQUEST,
-                    "Invalid agreement"
-            ), HttpStatus.BAD_REQUEST);
+        if (applicationAlreadyExists(applicationSaveDto.getStudentId())) {
+            return conflictResponse();
         }
 
-        //지원서 자기소개 유효성 검사
-        if (!this.isValidApplicationIntroduce(introduces, application.getPart())) {
-            return new ResponseEntity<>(ResponseDto.res(
-                    HttpStatus.BAD_REQUEST,
-                    "Invalid introduce"
-            ), HttpStatus.BAD_REQUEST);
+        Optional<Major> major = this.findMajorById(applicationSaveDto.getMajorId());
+        if (major.isEmpty()) {
+            return invalidDataResponse();
         }
 
-        //지원서, 동의 항목, 자기소개 저장
-        this.saveApplicationWithDetails(application, agreements, introduces);
+        Application application = buildApplicationFromDto(applicationSaveDto, major.get());
+        List<ApplicationAgreement> agreements = convertAgreements(applicationSaveDto, application);
+        List<ApplicationIntroduce> introduces = convertIntroduces(applicationSaveDto, application);
 
-        return new ResponseEntity<>(ResponseDto.res(
-                HttpStatus.CREATED,
-                "Success"
-        ), HttpStatus.CREATED);
+        if (agreements == null || introduces == null) {
+            return invalidDataResponse();
+        }
+
+        saveApplicationWithDetails(application, agreements, introduces);
+
+        return successResponse();
     }
 
     /**
-     * Description: 지원서 생성
+     * 학생 아이디에 해당하는 지원서가 이미 존재하는지 확인.
      *
-     * @param dto   지원서 생성 요청 DTO
-     * @param major 지원서 전공
-     * @return 지원서
+     * @param studentId 학번
+     * @return 존재 여부
      */
-    private Application buildApplicationFromDto(ApplicationSaveDto dto, Major major) {
+    private boolean applicationAlreadyExists(String studentId) {
+        return this.applicationRepository.existsByStudentId(studentId);
+    }
+
+    /**
+     * 이미 지원서가 존재하는 경우의 ResponseEntity를 생성하여 반환.
+     *
+     * @return 이미 지원서가 존재하는 경우의 ResponseEntity
+     */
+    private ResponseEntity<ResponseDto<Void>> conflictResponse() {
+        return new ResponseEntity<>(ResponseDto.res(HttpStatus.CONFLICT, "Already applied"), HttpStatus.CONFLICT);
+    }
+
+    /**
+     * ID를 기반으로 Major를 찾아 반환.
+     *
+     * @param majorId Major의 ID
+     * @return 찾아진 Major 객체의 Optional
+     */
+    private Optional<Major> findMajorById(String majorId) {
+        return this.majorRepository.findById(majorId);
+    }
+
+    /**
+     * 지원서 DTO와 Major를 사용하여 지원서를 생성.
+     *
+     * @param applicationSaveDto 지원서 DTO
+     * @param major              지원서의 Major
+     * @return 생성된 지원서 객체
+     */
+    private Application buildApplicationFromDto(ApplicationSaveDto applicationSaveDto, Major major) {
         return Application.builder()
-                .name(dto.getName())
-                .phoneNumber(dto.getPhoneNumber())
-                .email(dto.getEmail())
-                .part(dto.getPart())
-                .link(dto.getLink())
-                .grade(dto.getGrade())
-                .studentId(dto.getStudentId())
-                .userId(dto.getUserId())
+                .name(applicationSaveDto.getName())
+                .phoneNumber(applicationSaveDto.getPhoneNumber())
+                .email(applicationSaveDto.getEmail())
+                .part(applicationSaveDto.getPart())
+                .link(applicationSaveDto.getLink())
+                .grade(applicationSaveDto.getGrade())
+                .studentId(applicationSaveDto.getStudentId())
                 .major(major)
                 .build();
     }
 
     /**
-     * Description: 지원서, 동의 항목, 자기소개 저장
+     * 지원서 동의 항목을 변환하고 유효성 검사를 수행.
+     *
+     * @param applicationSaveDto 지원서 DTO
+     * @param application        변환 대상 지원서
+     * @return 유효한 경우 변환된 동의 항목 리스트, 그렇지 않은 경우 null
+     */
+    private List<ApplicationAgreement> convertAgreements(ApplicationSaveDto applicationSaveDto,
+                                                         Application application) {
+        List<ApplicationAgreement> agreements = this.applicationAgreementConvertor.convertMapToApplicationAgreement(
+                applicationSaveDto.getAgreements(), application);
+
+        if (agreements == null) {
+            return null;
+        }
+
+        return this.isValidAgreements(agreements) ? agreements : null;
+    }
+
+    /**
+     * 지원서 자기소개를 변환하고 유효성 검사를 수행.
+     *
+     * @param applicationSaveDto 지원서 DTO
+     * @param application        변환 대상 지원서
+     * @return 유효한 경우 변환된 자기소개 리스트, 그렇지 않은 경우 null
+     */
+    private List<ApplicationIntroduce> convertIntroduces(ApplicationSaveDto applicationSaveDto,
+                                                         Application application) {
+        List<ApplicationIntroduce> introduces = this.applicationIntroduceConvertor.convertMapToApplicationIntroduce(
+                applicationSaveDto.getIntroduces(), application);
+
+        if (introduces == null) {
+            return null;
+        }
+
+        return this.isValidIntroduces(introduces, application.getPart()) ? introduces : null;
+    }
+
+    /**
+     * 지원서 동의 항목 리스트의 유효성을 검사.
+     *
+     * @param agreements 지원서 동의 항목 리스트
+     * @return 유효한 경우 true, 그렇지 않은 경우 false
+     */
+    private boolean isValidAgreements(List<ApplicationAgreement> agreements) {
+        return this.agreementRepository.count() == agreements.size();
+    }
+
+    /**
+     * 지원서 자기소개 리스트의 유효성을 검사.
+     *
+     * @param introduces 지원서 자기소개 리스트
+     * @param part       지원 파트
+     * @return 유효한 경우 true, 그렇지 않은 경우 false
+     */
+    private boolean isValidIntroduces(List<ApplicationIntroduce> introduces, Part part) {
+        return introduces.size() == this.introduceRepository.countByPart(part);
+    }
+
+    /**
+     * 지원서, 동의 항목, 자기소개를 저장.
      *
      * @param application 지원서
      * @param agreements  지원서 동의 항목
      * @param introduces  지원서 자기소개
      */
-    private void saveApplicationWithDetails(Application application,
-                                            List<ApplicationAgreement> agreements,
+    private void saveApplicationWithDetails(Application application, List<ApplicationAgreement> agreements,
                                             List<ApplicationIntroduce> introduces) {
         applicationRepository.save(application);
         applicationAgreementRepository.saveAll(agreements);
@@ -122,23 +183,20 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
     }
 
     /**
-     * Description: 지원서 자기소개 유효성 검사
+     * 데이터 유효성 검사에 실패한 경우의 ResponseEntity를 생성하여 반환.
      *
-     * @param introduce 지원서 자기소개
-     * @param part      지원 파트
-     * @return 유효성 검사 결과
+     * @return 데이터 유효성 검사에 실패한 경우의 ResponseEntity
      */
-    private boolean isValidApplicationIntroduce(List<ApplicationIntroduce> introduce, Part part) {
-        return this.introduceRepository.countByPart(part) == introduce.size();
+    private ResponseEntity<ResponseDto<Void>> invalidDataResponse() {
+        return new ResponseEntity<>(ResponseDto.res(HttpStatus.BAD_REQUEST, "Invalid data"), HttpStatus.BAD_REQUEST);
     }
 
     /**
-     * Description: 지원서 동의 항목 유효성 검사
+     * 지원서 저장이 성공한 경우의 ResponseEntity를 생성하여 반환.
      *
-     * @param agreement 지원서 동의 항목
-     * @return 유효성 검사 결과
+     * @return 지원서 저장이 성공한 경우의 ResponseEntity
      */
-    private boolean isValidApplicationAgreement(List<ApplicationAgreement> agreement) {
-        return this.agreementRepository.count() == agreement.size();
+    private ResponseEntity<ResponseDto<Void>> successResponse() {
+        return new ResponseEntity<>(ResponseDto.res(HttpStatus.CREATED, "Created"), HttpStatus.CREATED);
     }
 }

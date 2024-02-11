@@ -11,15 +11,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,10 +31,6 @@ public class Application {
     @Column(updatable = false, unique = true, nullable = false)
     private UUID id;
 
-    @Column(name = "user_id", nullable = false, length = 100)
-    @NotNull
-    private String userId;
-
     @Column(length = 100)
     private String name;
 
@@ -41,7 +38,7 @@ public class Application {
     @JoinColumn(name = "major_id")
     private Major major;
 
-    @Column(name = "student_id", length = 100)
+    @Column(name = "student_id", length = 8)
     private String studentId;
 
     @Column(length = 100)
