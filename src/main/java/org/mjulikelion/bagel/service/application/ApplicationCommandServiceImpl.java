@@ -3,8 +3,10 @@ package org.mjulikelion.bagel.service.application;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.mjulikelion.bagel.dto.request.ApplicationSaveDto;
 import org.mjulikelion.bagel.dto.response.ResponseDto;
+import org.mjulikelion.bagel.dto.response.application.FileSaveResponseData;
 import org.mjulikelion.bagel.model.Application;
 import org.mjulikelion.bagel.model.ApplicationAgreement;
 import org.mjulikelion.bagel.model.ApplicationIntroduce;
@@ -18,13 +20,16 @@ import org.mjulikelion.bagel.repository.IntroduceRepository;
 import org.mjulikelion.bagel.repository.MajorRepository;
 import org.mjulikelion.bagel.util.converter.ApplicationAgreementConverter;
 import org.mjulikelion.bagel.util.converter.ApplicationIntroduceConverter;
+import org.mjulikelion.bagel.util.s3.S3Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ApplicationCommandServiceImpl implements ApplicationCommandService {
     private final ApplicationRepository applicationRepository;
     private final MajorRepository majorRepository;
@@ -34,6 +39,7 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
     private final ApplicationIntroduceRepository applicationIntroduceRepository;
     private final ApplicationAgreementConverter applicationAgreementConvertor;
     private final ApplicationIntroduceConverter applicationIntroduceConvertor;
+    private final S3Service s3Service;
 
     @Override
     @Transactional
@@ -58,6 +64,18 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
         saveApplicationWithDetails(application, agreements, introduces);
 
         return successResponse();
+    }
+
+    @Override
+    public ResponseEntity<ResponseDto<FileSaveResponseData>> saveFile(MultipartFile file) {
+        try {
+            String url = this.s3Service.saveFile(file);
+            return new ResponseEntity<>(ResponseDto.res(HttpStatus.CREATED, "Created", new FileSaveResponseData(url)),
+                    HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ResponseDto.res(HttpStatus.BAD_REQUEST, "Failed to save file"),
+                    HttpStatus.BAD_REQUEST);
+        }
     }
 
     /**
