@@ -52,8 +52,8 @@ public class Application {
     @Column(length = 100)
     private String email;
 
-    @Column
-    private Byte grade;
+    @Column(length = 10)
+    private String grade;
 
     @Enumerated(EnumType.STRING)
     @Column
