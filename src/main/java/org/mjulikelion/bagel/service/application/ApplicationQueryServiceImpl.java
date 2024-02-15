@@ -88,8 +88,8 @@ public class ApplicationQueryServiceImpl implements ApplicationQueryService {
      */
     private ApplicationGetResponseData buildApplicationGetResponseData(Part partEnum) {
         List<Introduce> introduces = introduceRepository.findAllByPartOrderBySequence(partEnum);
-        List<Agreement> agreements = agreementRepository.findAll();
-        List<Major> majors = majorRepository.findAll();
+        List<Agreement> agreements = agreementRepository.findAllByOrderBySequence();
+        List<Major> majors = majorRepository.findAllByOrderBySequence();
 
         return ApplicationGetResponseData.builder()
                 .introduces(introduces)
