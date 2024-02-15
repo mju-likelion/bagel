@@ -6,8 +6,6 @@ import static org.mjulikelion.bagel.constant.RegexPatterns.APPLICATION_STUDENT_I
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -15,6 +13,7 @@ import java.util.Map;
 import lombok.Getter;
 import org.mjulikelion.bagel.model.Part;
 import org.mjulikelion.bagel.util.annotaion.enumconstraint.EnumConstraint;
+import org.mjulikelion.bagel.util.annotaion.grade.GradeConstraint;
 
 
 @Getter
@@ -36,13 +35,12 @@ public class ApplicationSaveDto {
 
     @NotNull
     @Email
-    @NotBlank(message = "5")
+    @NotBlank
     private String email;//이메일
 
     @NotNull
-    @Min(1)
-    @Max(5)
-    private byte grade;//학년
+    @GradeConstraint
+    private String grade;//학년
 
     @NotNull
     @EnumConstraint(Part.class)
