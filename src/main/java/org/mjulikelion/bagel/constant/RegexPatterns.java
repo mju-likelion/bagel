@@ -5,4 +5,6 @@ public class RegexPatterns {
     public static final String APPLICATION_STUDENT_ID_PATTERN = "^60\\d{6}$";//60으로 시작하고 그 뒤로 숫자 6개인 문자열
     public static final String APPLICATION_PHONE_NUMBER_PATTERN = "^010-\\d{4}-\\d{4}$";//010-숫자4개-숫자4개
     public static final String APPLICATION_GRADE_PATTERN = "^[1-4]$|휴학|졸업유예";//1에서 4까지의 숫자 또는 휴학 또는 졸업유예
+    public static final String APPLICATION_LINK_PATTERN = "^https:\\/\\/[^\\s\\/$.?#].[^\\s]*$";//https://로 시작하고 공백이 아닌 문자열로 끝나는 문자열
+    public static final String APPLICATION_EMAIL_PATTERN = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$";//이메일 형식
 }
