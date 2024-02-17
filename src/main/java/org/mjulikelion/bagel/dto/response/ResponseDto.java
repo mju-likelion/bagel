@@ -4,33 +4,45 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 @Data
 @Builder
 @AllArgsConstructor
 public class ResponseDto<T> {
     @JsonProperty
-    private final int statusCode;
+    private final String statusCode;
     @JsonProperty
     private final String message;
     @JsonProperty
     private final T data;
 
-    public ResponseDto(final HttpStatus statusCode, final String resultMsg) {
-        this.statusCode = statusCode.value();
+    public ResponseDto(final String statusCode, final String resultMsg) {
+        this.statusCode = statusCode;
         this.message = resultMsg;
         this.data = null;
     }
 
-    public static <T> ResponseDto<T> res(final HttpStatus statusCode, final String resultMsg) {
+    public static <T> ResponseDto<T> res(final String statusCode, final String resultMsg) {
         return res(statusCode, resultMsg, null);
     }
 
-    public static <T> ResponseDto<T> res(final HttpStatus statusCode, final String resultMsg, final T t) {
+    public static <T> ResponseDto<T> res(final String statusCode, final String resultMsg, final T data) {
         return ResponseDto.<T>builder()
-                .data(t)
-                .statusCode(statusCode.value())
+                .data(data)
+                .statusCode(statusCode)
+                .message(resultMsg)
+                .build();
+    }
+
+    public static <T> ResponseDto<T> res(final HttpStatusCode statusCode, final String resultMsg) {
+        return res(statusCode, resultMsg, null);
+    }
+
+    public static <T> ResponseDto<T> res(final HttpStatusCode statusCode, final String resultMsg, final T data) {
+        return ResponseDto.<T>builder()
+                .data(data)
+                .statusCode(String.valueOf(statusCode.value()))
                 .message(resultMsg)
                 .build();
     }
