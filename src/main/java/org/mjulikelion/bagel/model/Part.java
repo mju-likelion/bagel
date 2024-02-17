@@ -1,5 +1,9 @@
 package org.mjulikelion.bagel.model;
 
+import static org.mjulikelion.bagel.errorcode.ErrorCode.INVALID_PART_ERROR;
+
+import org.mjulikelion.bagel.exception.InvalidDataException;
+
 public enum Part {
     SERVER, WEB;
 
@@ -9,6 +13,6 @@ public enum Part {
                 return p;
             }
         }
-        return null;
+        throw new InvalidDataException(INVALID_PART_ERROR);
     }
 }

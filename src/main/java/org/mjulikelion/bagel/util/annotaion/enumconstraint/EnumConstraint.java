@@ -10,11 +10,11 @@ import java.lang.annotation.Target;
 /**
  * 값이 주어진 Enum 인지 검증하는 Annotation
  */
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = EnumConstraintValidator.class)
 public @interface EnumConstraint {
-    String message() default "Invalid enum value";
+    String message() default "Enum에 존재하지 않는 값입니다.";
 
     Class<?>[] groups() default {};
 

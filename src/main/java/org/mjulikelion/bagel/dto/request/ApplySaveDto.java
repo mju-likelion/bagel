@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @Getter
 public class ApplySaveDto {
-    @NotNull
-    @Pattern(regexp = APPLICATION_STUDENT_ID_PATTERN)
+    @NotNull(message = "학번이 누락되었습니다.")
+    @Pattern(regexp = APPLICATION_STUDENT_ID_PATTERN, message = "학번이 형식에 맞지 않습니다.")
     private String studentId;//학번
 }

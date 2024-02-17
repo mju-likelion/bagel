@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = IntroduceFileConstraintValidator.class)
 public @interface IntroduceFileConstraint {
-    String message() default "Invalid Introduce file";
+    String message() default "파일의 형식이 잘못되었거나 유효하지 않습니다.";
 
     Class<?>[] groups() default {};
 
