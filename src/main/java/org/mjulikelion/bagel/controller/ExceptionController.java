@@ -5,6 +5,7 @@ import org.mjulikelion.bagel.dto.response.ResponseDto;
 import org.mjulikelion.bagel.errorcode.ErrorCode;
 import org.mjulikelion.bagel.errorcode.ValidationErrorCode;
 import org.mjulikelion.bagel.exception.ApplicationAlreadyExistException;
+import org.mjulikelion.bagel.exception.DateRangeException;
 import org.mjulikelion.bagel.exception.FileStorageException;
 import org.mjulikelion.bagel.exception.InvalidDataException;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,17 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @Slf4j
 @RestControllerAdvice
 public class ExceptionController {
+    //DateRangeException 예외를 처리하는 핸들러(날짜 범위에 맞지 않는 경우)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(DateRangeException.class)
+    public ResponseEntity<ResponseDto<Void>> handleDateRangeException(DateRangeException dateRangeException) {
+        log.error("DateRangeException: {}", dateRangeException.getMessage());
+        ErrorCode errorCode = ErrorCode.DATE_RANGE_ERROR;
+        String code = errorCode.getCode();
+        String message = errorCode.getMessage();
+        return new ResponseEntity<>(ResponseDto.res(code, message), HttpStatus.FORBIDDEN);
+    }
+
     //MethodArgumentNotValidException 예외를 처리하는 핸들러(Body(dto)의 Validation에 실패한 경우)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
