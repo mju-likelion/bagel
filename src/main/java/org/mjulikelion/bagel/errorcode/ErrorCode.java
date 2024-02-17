@@ -6,6 +6,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {
+    //잘못된 요청 오류들
+    DATE_RANGE_ERROR("DATE 4030", "지원 기간이 아닙니다."),//지원 기간이 아님
     //서버 내부 오류들
     INTERNAL_SERVER_ERROR("INTERNAL 5000", "알 수 없는 서버 내부 오류."),//서버 내부 오류
     FILE_STORAGE_ERROR("INTERNAL 5001", "파일 저장에 실패하였습니다."),//파일 저장 실패
