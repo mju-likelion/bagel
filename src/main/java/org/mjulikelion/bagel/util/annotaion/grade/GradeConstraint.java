@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = GradeConstraintValidator.class)
 public @interface GradeConstraint {
-    String message() default "Invalid grade";
+    String message() default "학번이 형식에 맞지 않습니다.";
 
     Class<?>[] groups() default {};
 
