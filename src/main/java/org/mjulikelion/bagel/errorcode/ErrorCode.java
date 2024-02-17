@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ErrorCode {
     //서버 내부 오류들
-    INTERNAL_SERVER_ERROR("INTERNAL 5000", "알 수 없는 서버 내부 오류"),//서버 내부 오류
+    INTERNAL_SERVER_ERROR("INTERNAL 5000", "알 수 없는 서버 내부 오류."),//서버 내부 오류
     FILE_STORAGE_ERROR("INTERNAL 5001", "파일 저장에 실패하였습니다."),//파일 저장 실패
     //잘못된 경로, 메소드 오류들
     METHOD_NOT_ALLOWED_ERROR("METHOD 4050", "허용되지 않은 메소드 입니다."),//허용되지 않은 메소드
