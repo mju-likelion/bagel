@@ -3,7 +3,7 @@ package org.mjulikelion.bagel.util.annotaion.enumconstraint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class EnumConstraintValidator implements ConstraintValidator<EnumConstraint, Enum<?>> {
+public class EnumConstraintValidator implements ConstraintValidator<EnumConstraint, String> {
 
     private Class<? extends Enum<?>> enumClass;
 
@@ -20,12 +20,12 @@ public class EnumConstraintValidator implements ConstraintValidator<EnumConstrai
      * @return boolean
      */
     @Override
-    public boolean isValid(Enum<?> value, ConstraintValidatorContext context) {
+    public boolean isValid(String value, ConstraintValidatorContext context) {
         if (value == null) {
             return false;
         }
         for (Enum<?> enumConstant : enumClass.getEnumConstants()) {
-            if (enumConstant.equals(value)) {
+            if (enumConstant.name().equals(value)) {
                 return true;
             }
         }
