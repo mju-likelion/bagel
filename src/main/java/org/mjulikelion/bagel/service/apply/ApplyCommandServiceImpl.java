@@ -1,8 +1,11 @@
 package org.mjulikelion.bagel.service.apply;
 
+import static org.mjulikelion.bagel.errorcode.ErrorCode.APPLICATION_ALREADY_EXISTS_ERROR;
+
 import lombok.AllArgsConstructor;
 import org.mjulikelion.bagel.dto.request.ApplySaveDto;
 import org.mjulikelion.bagel.dto.response.ResponseDto;
+import org.mjulikelion.bagel.exception.ApplicationAlreadyExistException;
 import org.mjulikelion.bagel.model.History;
 import org.mjulikelion.bagel.repository.ApplicationRepository;
 import org.mjulikelion.bagel.repository.HistoryRepository;
@@ -22,10 +25,7 @@ public class ApplyCommandServiceImpl implements ApplyCommandService {
     public ResponseEntity<ResponseDto<Void>> saveApply(ApplySaveDto applySaveDto) {
         //이미 지원서가 있는지 확인
         if (this.applicationRepository.existsByStudentId(applySaveDto.getStudentId())) {
-            return new ResponseEntity<>(ResponseDto.res(
-                    HttpStatus.CONFLICT,
-                    "Already applied"
-            ), HttpStatus.CONFLICT);
+            throw new ApplicationAlreadyExistException(APPLICATION_ALREADY_EXISTS_ERROR);
         }
 
         History history = History.builder()
