@@ -1,12 +1,20 @@
 package org.mjulikelion.bagel.service.application;
 
+import static org.mjulikelion.bagel.errorcode.ErrorCode.APPLICATION_ALREADY_EXISTS_ERROR;
+import static org.mjulikelion.bagel.errorcode.ErrorCode.FILE_STORAGE_ERROR;
+import static org.mjulikelion.bagel.errorcode.ErrorCode.INVALID_AGREEMENT_MISSING_ERROR;
+import static org.mjulikelion.bagel.errorcode.ErrorCode.INVALID_INTRODUCE_MISSING_ERROR;
+import static org.mjulikelion.bagel.errorcode.ErrorCode.INVALID_MAJOR_ERROR;
+
 import java.util.List;
-import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mjulikelion.bagel.dto.request.ApplicationSaveDto;
 import org.mjulikelion.bagel.dto.response.ResponseDto;
 import org.mjulikelion.bagel.dto.response.application.FileSaveResponseData;
+import org.mjulikelion.bagel.exception.ApplicationAlreadyExistException;
+import org.mjulikelion.bagel.exception.FileStorageException;
+import org.mjulikelion.bagel.exception.InvalidDataException;
 import org.mjulikelion.bagel.model.Application;
 import org.mjulikelion.bagel.model.ApplicationAgreement;
 import org.mjulikelion.bagel.model.ApplicationIntroduce;
@@ -45,36 +53,29 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
     @Transactional
     public ResponseEntity<ResponseDto<Void>> saveApplication(ApplicationSaveDto applicationSaveDto) {
         if (applicationAlreadyExists(applicationSaveDto.getStudentId())) {
-            return conflictResponse();
+            throw new ApplicationAlreadyExistException(APPLICATION_ALREADY_EXISTS_ERROR);
         }
 
-        Optional<Major> major = this.findMajorById(applicationSaveDto.getMajorId());
-        if (major.isEmpty()) {
-            return invalidDataResponse();
-        }
+        Major major = this.findMajorById(applicationSaveDto.getMajorId());
 
-        Application application = buildApplicationFromDto(applicationSaveDto, major.get());
+        Application application = buildApplicationFromDto(applicationSaveDto, major);
         List<ApplicationAgreement> agreements = convertAgreements(applicationSaveDto, application);
         List<ApplicationIntroduce> introduces = convertIntroduces(applicationSaveDto, application);
 
-        if (agreements == null || introduces == null) {
-            return invalidDataResponse();
-        }
-
         saveApplicationWithDetails(application, agreements, introduces);
 
-        return successResponse();
+        return new ResponseEntity<>(ResponseDto.res(HttpStatus.CREATED, "Created"), HttpStatus.CREATED);
     }
 
     @Override
     public ResponseEntity<ResponseDto<FileSaveResponseData>> saveFile(MultipartFile file) {
         try {
             String url = this.s3Service.saveFile(file);
-            return new ResponseEntity<>(ResponseDto.res(HttpStatus.CREATED, "Created", new FileSaveResponseData(url)),
+            return new ResponseEntity<>(
+                    ResponseDto.res(HttpStatus.CREATED, "Created", new FileSaveResponseData(url)),
                     HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(ResponseDto.res(HttpStatus.BAD_REQUEST, "Failed to save file"),
-                    HttpStatus.BAD_REQUEST);
+            throw new FileStorageException(FILE_STORAGE_ERROR, e.getMessage());
         }
     }
 
@@ -89,22 +90,13 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
     }
 
     /**
-     * 이미 지원서가 존재하는 경우의 ResponseEntity를 생성하여 반환.
-     *
-     * @return 이미 지원서가 존재하는 경우의 ResponseEntity
-     */
-    private ResponseEntity<ResponseDto<Void>> conflictResponse() {
-        return new ResponseEntity<>(ResponseDto.res(HttpStatus.CONFLICT, "Already applied"), HttpStatus.CONFLICT);
-    }
-
-    /**
      * ID를 기반으로 Major를 찾아 반환.
      *
      * @param majorId Major의 ID
      * @return 찾아진 Major 객체의 Optional
      */
-    private Optional<Major> findMajorById(String majorId) {
-        return this.majorRepository.findById(majorId);
+    private Major findMajorById(String majorId) {
+        return this.majorRepository.findById(majorId).orElseThrow(() -> new InvalidDataException(INVALID_MAJOR_ERROR));
     }
 
     /**
@@ -119,7 +111,7 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
                 .name(applicationSaveDto.getName())
                 .phoneNumber(applicationSaveDto.getPhoneNumber())
                 .email(applicationSaveDto.getEmail())
-                .part(applicationSaveDto.getPart())
+                .part(Part.findBy(applicationSaveDto.getPart()))
                 .link(applicationSaveDto.getLink())
                 .grade(applicationSaveDto.getGrade())
                 .studentId(applicationSaveDto.getStudentId())
@@ -139,11 +131,11 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
         List<ApplicationAgreement> agreements = this.applicationAgreementConvertor.convertMapToApplicationAgreement(
                 applicationSaveDto.getAgreements(), application);
 
-        if (agreements == null) {
-            return null;
+        if (!this.isValidAgreementsSize(agreements)) {
+            throw new InvalidDataException(INVALID_AGREEMENT_MISSING_ERROR);
         }
 
-        return this.isValidAgreements(agreements) ? agreements : null;
+        return agreements;
     }
 
     /**
@@ -158,31 +150,31 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
         List<ApplicationIntroduce> introduces = this.applicationIntroduceConvertor.convertMapToApplicationIntroduce(
                 applicationSaveDto.getIntroduces(), application);
 
-        if (introduces == null) {
-            return null;
+        if (!this.isValidIntroducesSize(introduces, application.getPart())) {
+            throw new InvalidDataException(INVALID_INTRODUCE_MISSING_ERROR);
         }
 
-        return this.isValidIntroduces(introduces, application.getPart()) ? introduces : null;
+        return introduces;
     }
 
     /**
-     * 지원서 동의 항목 리스트의 유효성을 검사.
+     * 지원서 동의 항목 리스트의 누락 여부를 검사.
      *
      * @param agreements 지원서 동의 항목 리스트
      * @return 유효한 경우 true, 그렇지 않은 경우 false
      */
-    private boolean isValidAgreements(List<ApplicationAgreement> agreements) {
+    private boolean isValidAgreementsSize(List<ApplicationAgreement> agreements) {
         return this.agreementRepository.count() == agreements.size();
     }
 
     /**
-     * 지원서 자기소개 리스트의 유효성을 검사.
+     * 지원서 자기소개 리스트의 누락 여부를 검사.
      *
      * @param introduces 지원서 자기소개 리스트
      * @param part       지원 파트
      * @return 유효한 경우 true, 그렇지 않은 경우 false
      */
-    private boolean isValidIntroduces(List<ApplicationIntroduce> introduces, Part part) {
+    private boolean isValidIntroducesSize(List<ApplicationIntroduce> introduces, Part part) {
         return introduces.size() == this.introduceRepository.countByPart(part);
     }
 
@@ -195,26 +187,9 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
      */
     private void saveApplicationWithDetails(Application application, List<ApplicationAgreement> agreements,
                                             List<ApplicationIntroduce> introduces) {
+
         applicationRepository.save(application);
         applicationAgreementRepository.saveAll(agreements);
         applicationIntroduceRepository.saveAll(introduces);
-    }
-
-    /**
-     * 데이터 유효성 검사에 실패한 경우의 ResponseEntity를 생성하여 반환.
-     *
-     * @return 데이터 유효성 검사에 실패한 경우의 ResponseEntity
-     */
-    private ResponseEntity<ResponseDto<Void>> invalidDataResponse() {
-        return new ResponseEntity<>(ResponseDto.res(HttpStatus.BAD_REQUEST, "Invalid data"), HttpStatus.BAD_REQUEST);
-    }
-
-    /**
-     * 지원서 저장이 성공한 경우의 ResponseEntity를 생성하여 반환.
-     *
-     * @return 지원서 저장이 성공한 경우의 ResponseEntity
-     */
-    private ResponseEntity<ResponseDto<Void>> successResponse() {
-        return new ResponseEntity<>(ResponseDto.res(HttpStatus.CREATED, "Created"), HttpStatus.CREATED);
     }
 }
