@@ -32,31 +32,19 @@ public class ApplicationQueryServiceImpl implements ApplicationQueryService {
     public ResponseEntity<ResponseDto<ApplicationGetResponseData>> getApplicationByPart(String part) {
         Part partEnum = Part.findBy(part.toUpperCase());
 
-        if (partEnum == null) {
-            return this.handleInvalidPart();
-        }
-
         Optional<ApplicationGetResponseData> cachedResponse = this.getCachedApplicationGetResponseData(partEnum);
 
-        ApplicationGetResponseData response = cachedResponse.orElseGet(() -> {
+        ApplicationGetResponseData applicationGetResponseData = cachedResponse.orElseGet(() -> {
             ApplicationGetResponseData responseData = this.buildApplicationGetResponseData(partEnum);
             this.cacheApplicationGetResponseData(partEnum, responseData);
             return responseData;
         });
 
-        return this.successResponse(response);
-    }
-
-    /**
-     * part가 유효하지 않은 경우의 ResponseEntity를 생성하여 반환.
-     *
-     * @return part가 유효하지 않은 경우의 ResponseEntity
-     */
-    private ResponseEntity<ResponseDto<ApplicationGetResponseData>> handleInvalidPart() {
         return new ResponseEntity<>(ResponseDto.res(
-                HttpStatus.BAD_REQUEST,
-                "Invalid part"
-        ), HttpStatus.BAD_REQUEST);
+                HttpStatus.OK,
+                "Success",
+                applicationGetResponseData
+        ), HttpStatus.OK);
     }
 
     /**
@@ -96,19 +84,5 @@ public class ApplicationQueryServiceImpl implements ApplicationQueryService {
                 .agreements(agreements)
                 .majors(majors)
                 .build();
-    }
-
-    /**
-     * 지원서 저장이 성공한 경우의 ResponseEntity를 생성하여 반환.
-     *
-     * @return 지원서 저장이 성공한 경우의 ResponseEntity
-     */
-    private ResponseEntity<ResponseDto<ApplicationGetResponseData>> successResponse(
-            ApplicationGetResponseData applicationGetResponseData) {
-        return new ResponseEntity<>(ResponseDto.res(
-                HttpStatus.OK,
-                "Success",
-                applicationGetResponseData
-        ), HttpStatus.OK);
     }
 }
