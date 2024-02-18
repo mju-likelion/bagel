@@ -1,6 +1,7 @@
 package org.mjulikelion.bagel.util.annotaion.file.introduce;
 
 import static org.mjulikelion.bagel.constant.FileConstant.MAX_FILE_SIZE;
+import static org.mjulikelion.bagel.constant.FileConstant.X_ZIP_CONTENT_TYPE;
 import static org.mjulikelion.bagel.constant.FileConstant.ZIP_CONTENT_TYPE;
 import static org.mjulikelion.bagel.constant.FileConstant.ZIP_EXTENSION;
 import static org.mjulikelion.bagel.constant.RegexPatterns.APPLICATION_STUDENT_ID_PATTERN;
@@ -39,12 +40,18 @@ public class IntroduceFileConstraintValidator implements ConstraintValidator<Int
     }
 
     private boolean isValidFileExtension(MultipartFile file) {
-        log.info("Is file extension valid? {}",
-                Objects.equals(file.getContentType(), ZIP_CONTENT_TYPE) && Objects.requireNonNull(
-                        file.getOriginalFilename()).toLowerCase().endsWith(ZIP_EXTENSION));
-        return Objects.equals(file.getContentType(), ZIP_CONTENT_TYPE) && Objects.requireNonNull(
-                file.getOriginalFilename()).toLowerCase().endsWith(ZIP_EXTENSION);
+        String contentType = file.getContentType();
+        String filename = file.getOriginalFilename();
+
+        boolean isValidContentType =
+                Objects.equals(contentType, ZIP_CONTENT_TYPE) || Objects.equals(contentType, X_ZIP_CONTENT_TYPE);
+        boolean isValidFileExtension = filename != null && filename.toLowerCase().endsWith(ZIP_EXTENSION);
+
+        log.info("Is file extension valid? {}", isValidContentType && isValidFileExtension);
+
+        return isValidContentType && isValidFileExtension;
     }
+
 
     private boolean isValidFileSize(MultipartFile file) {
         log.info("Is file size valid? {}", file.getSize() <= MAX_FILE_SIZE);
