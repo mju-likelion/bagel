@@ -11,11 +11,13 @@ public class CorsConfig implements WebMvcConfigurer {
     private final long MAX_AGE_SECS = 3600;
     @Value("${client.host}")
     private String clientHost;
+    @Value("${client.local-host}")
+    private String clientLocalHost;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(clientHost)
+                .allowedOrigins(clientHost, clientLocalHost)
                 .allowedMethods(HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.PUT.name(),
                         HttpMethod.PATCH.name(), HttpMethod.DELETE.name(),
                         HttpMethod.OPTIONS.name())
