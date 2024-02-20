@@ -29,6 +29,9 @@ import org.mjulikelion.bagel.repository.MajorRepository;
 import org.mjulikelion.bagel.util.converter.ApplicationAgreementConverter;
 import org.mjulikelion.bagel.util.converter.ApplicationIntroduceConverter;
 import org.mjulikelion.bagel.util.s3.S3Service;
+import org.mjulikelion.bagel.util.slack.SlackService;
+import org.mjulikelion.bagel.util.slack.asset.message.SlackApplySaveMessage;
+import org.mjulikelion.bagel.util.slack.asset.message.SlackFileMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -48,6 +51,7 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
     private final ApplicationAgreementConverter applicationAgreementConvertor;
     private final ApplicationIntroduceConverter applicationIntroduceConvertor;
     private final S3Service s3Service;
+    private final SlackService slackService;
 
     @Override
     @Transactional
@@ -64,6 +68,8 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
 
         saveApplicationWithDetails(application, agreements, introduces);
 
+        this.slackService.sendSlackMessage(new SlackApplySaveMessage(application));
+
         return new ResponseEntity<>(ResponseDto.res(HttpStatus.CREATED, "Created"), HttpStatus.CREATED);
     }
 
@@ -71,6 +77,7 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
     public ResponseEntity<ResponseDto<FileSaveResponseData>> saveFile(MultipartFile file) {
         try {
             String url = this.s3Service.saveFile(file);
+            this.slackService.sendSlackMessage(new SlackFileMessage(file.getOriginalFilename(), url));
             return new ResponseEntity<>(
                     ResponseDto.res(HttpStatus.CREATED, "Created", new FileSaveResponseData(url)),
                     HttpStatus.CREATED);
