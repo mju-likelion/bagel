@@ -9,6 +9,8 @@ import org.mjulikelion.bagel.exception.ApplicationAlreadyExistException;
 import org.mjulikelion.bagel.model.History;
 import org.mjulikelion.bagel.repository.ApplicationRepository;
 import org.mjulikelion.bagel.repository.HistoryRepository;
+import org.mjulikelion.bagel.util.slack.SlackService;
+import org.mjulikelion.bagel.util.slack.asset.message.SlackApplyMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -19,11 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class ApplyCommandServiceImpl implements ApplyCommandService {
     private final ApplicationRepository applicationRepository;
     private final HistoryRepository historyRepository;
+    private final SlackService slackService;
 
     @Override
     @Transactional
     public ResponseEntity<ResponseDto<Void>> saveApply(ApplySaveDto applySaveDto) {
-        //이미 지원서가 있는지 확인
         if (this.applicationRepository.existsByStudentId(applySaveDto.getStudentId())) {
             throw new ApplicationAlreadyExistException(APPLICATION_ALREADY_EXISTS_ERROR);
         }
@@ -32,6 +34,8 @@ public class ApplyCommandServiceImpl implements ApplyCommandService {
                 .studentId(applySaveDto.getStudentId())
                 .build();
         this.historyRepository.save(history);
+
+        this.slackService.sendSlackMessage(new SlackApplyMessage(applySaveDto.getStudentId()));
 
         return new ResponseEntity<>(ResponseDto.res(
                 HttpStatus.CREATED,
