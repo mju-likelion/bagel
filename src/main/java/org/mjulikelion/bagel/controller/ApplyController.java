@@ -1,6 +1,9 @@
 package org.mjulikelion.bagel.controller;
 
+import static org.mjulikelion.bagel.constant.RegexPatterns.APPLICATION_STUDENT_ID_PATTERN;
+
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import org.mjulikelion.bagel.dto.request.ApplySaveDto;
 import org.mjulikelion.bagel.dto.response.ResponseDto;
@@ -24,7 +27,7 @@ public class ApplyController {
 
     @GetMapping("/exist/{studentId}")
     public ResponseEntity<ResponseDto<ApplyExistResponseData>> getApplicationExist(
-            @PathVariable("studentId") String studentId) {
+            @PathVariable("studentId") @Pattern(regexp = APPLICATION_STUDENT_ID_PATTERN) @Valid String studentId) {
         return this.applyQueryService.getApplyExist(studentId);
     }
 
