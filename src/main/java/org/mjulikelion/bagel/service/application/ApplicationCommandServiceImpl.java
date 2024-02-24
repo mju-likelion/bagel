@@ -3,10 +3,12 @@ package org.mjulikelion.bagel.service.application;
 import static org.mjulikelion.bagel.errorcode.ErrorCode.APPLICATION_ALREADY_EXISTS_ERROR;
 import static org.mjulikelion.bagel.errorcode.ErrorCode.FILE_STORAGE_ERROR;
 import static org.mjulikelion.bagel.errorcode.ErrorCode.INVALID_AGREEMENT_MISSING_ERROR;
+import static org.mjulikelion.bagel.errorcode.ErrorCode.INVALID_INTRODUCE_LENGTH_ERROR;
 import static org.mjulikelion.bagel.errorcode.ErrorCode.INVALID_INTRODUCE_MISSING_ERROR;
 import static org.mjulikelion.bagel.errorcode.ErrorCode.INVALID_MAJOR_ERROR;
 
 import java.util.List;
+import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mjulikelion.bagel.dto.request.ApplicationSaveDto;
@@ -138,9 +140,7 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
         List<ApplicationAgreement> agreements = this.applicationAgreementConvertor.convertMapToApplicationAgreement(
                 applicationSaveDto.getAgreements(), application);
 
-        if (!this.isValidAgreementsSize(agreements)) {
-            throw new InvalidDataException(INVALID_AGREEMENT_MISSING_ERROR);
-        }
+        this.validateAgreements(agreements);
 
         return agreements;
     }
@@ -157,9 +157,7 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
         List<ApplicationIntroduce> introduces = this.applicationIntroduceConvertor.convertMapToApplicationIntroduce(
                 applicationSaveDto.getIntroduces(), application);
 
-        if (!this.isValidIntroducesSize(introduces, application.getPart())) {
-            throw new InvalidDataException(INVALID_INTRODUCE_MISSING_ERROR);
-        }
+        this.validateIntroduces(introduces, application.getPart());
 
         return introduces;
     }
@@ -174,6 +172,12 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
         return this.agreementRepository.count() == agreements.size();
     }
 
+    private void validateAgreements(List<ApplicationAgreement> agreements) {
+        if (!isValidAgreementsSize(agreements)) {
+            throw new InvalidDataException(INVALID_AGREEMENT_MISSING_ERROR);
+        }
+    }
+
     /**
      * 지원서 자기소개 리스트의 누락 여부를 검사.
      *
@@ -183,6 +187,38 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
      */
     private boolean isValidIntroducesSize(List<ApplicationIntroduce> introduces, Part part) {
         return introduces.size() == this.introduceRepository.countByPart(part);
+    }
+
+    /**
+     * 지원서 자기소개의 글자수를 검사.
+     *
+     * @param introduces 지원서 자기소개 리스트
+     * @param part       지원 파트
+     * @return 유효한 경우 true, 그렇지 않은 경우 false
+     */
+    private boolean isValidIntroducesLength(List<ApplicationIntroduce> introduces, Part part) {
+        //introduce의 아이디를 DB에 있는 introduce의 아이디와 비교해서 글자수가 맞는지 확인
+        introduces.forEach(introduce -> log.info(String.valueOf(introduce.getContent().length())));
+        this.introduceRepository.findAllByPart(part)
+                .forEach(introduce -> log.info(String.valueOf(introduce.getMaxLength())));
+        return IntStream.range(0, introduces.size())
+                .allMatch(i -> introduces.get(i).getContent().length() <= this.introduceRepository.findById(
+                        introduces.get(i).getIntroduce().getId()).orElseThrow().getMaxLength());
+    }
+
+    /**
+     * 지원서 자기소개의 유효성을 검사.
+     *
+     * @param introduces 지원서 자기소개 리스트
+     * @param part       지원 파트
+     */
+    private void validateIntroduces(List<ApplicationIntroduce> introduces, Part part) {
+        if (!isValidIntroducesSize(introduces, part)) {
+            throw new InvalidDataException(INVALID_INTRODUCE_MISSING_ERROR);
+        }
+        if (!isValidIntroducesLength(introduces, part)) {
+            throw new InvalidDataException(INVALID_INTRODUCE_LENGTH_ERROR);
+        }
     }
 
     /**

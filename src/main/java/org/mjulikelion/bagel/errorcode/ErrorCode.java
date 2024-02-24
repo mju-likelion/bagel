@@ -23,7 +23,8 @@ public enum ErrorCode {
     INVALID_INTRODUCE_ERROR("4003", "유효하지 않은 자기소개 항목 입니다."),//유효하지 않은 자기소개 항목
     INVALID_AGREEMENT_ERROR("4004", "유효하지 않은 동의 항목 입니다."),//유효하지 않은 동의 항목
     INVALID_INTRODUCE_MISSING_ERROR("4005", "자기소개 항목이 누락되었습니다."),//자기소개 항목이 누락됨
-    INVALID_AGREEMENT_MISSING_ERROR("4006", "동의 항목이 누락되었습니다.");//동의 항목이 누락됨
+    INVALID_AGREEMENT_MISSING_ERROR("4006", "동의 항목이 누락되었습니다."),//동의 항목이 누락됨
+    INVALID_INTRODUCE_LENGTH_ERROR("4007", "자기소개 항목의 길이가 유효하지 않습니다.");//자기소개 항목의 길이가 유효하지 않음
 
 
     private final String code;
