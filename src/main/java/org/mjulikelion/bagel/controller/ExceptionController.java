@@ -8,6 +8,7 @@ import org.mjulikelion.bagel.exception.ApplicationAlreadyExistException;
 import org.mjulikelion.bagel.exception.DateRangeException;
 import org.mjulikelion.bagel.exception.FileStorageException;
 import org.mjulikelion.bagel.exception.InvalidDataException;
+import org.mjulikelion.bagel.exception.RateLimitException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -23,6 +24,17 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @Slf4j
 @RestControllerAdvice
 public class ExceptionController {
+    //RateLimitException 예외를 처리하는 핸들러(요청이 제한된 경우)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<ResponseDto<Void>> handleRateLimitException(RateLimitException rateLimitException) {
+        log.error("RateLimitException: {}", rateLimitException.getMessage());
+        ErrorCode errorCode = ErrorCode.RATE_LIMIT_ERROR;
+        String code = errorCode.getCode();
+        String message = errorCode.getMessage();
+        return new ResponseEntity<>(ResponseDto.res(code, message), HttpStatus.TOO_MANY_REQUESTS);
+    }
+
     //DateRangeException 예외를 처리하는 핸들러(날짜 범위에 맞지 않는 경우)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(DateRangeException.class)
