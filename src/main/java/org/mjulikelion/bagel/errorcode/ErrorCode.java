@@ -7,6 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ErrorCode {
     //잘못된 요청 오류들
+    RATE_LIMIT_ERROR("4290", "요청이 너무 많습니다."),//요청이 너무 많음
     DATE_RANGE_ERROR("4030", "지원 기간이 아닙니다."),//지원 기간이 아님
     //서버 내부 오류들
     INTERNAL_SERVER_ERROR("5000", "알 수 없는 서버 내부 오류."),//서버 내부 오류
