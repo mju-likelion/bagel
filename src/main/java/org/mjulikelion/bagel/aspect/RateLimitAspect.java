@@ -2,11 +2,13 @@ package org.mjulikelion.bagel.aspect;
 
 import static org.mjulikelion.bagel.errorcode.ErrorCode.RATE_LIMIT_ERROR;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
 import io.github.bucket4j.local.LocalBucketBuilder;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.Duration;
 import java.util.Map;
@@ -53,7 +55,7 @@ public class RateLimitAspect {
                         .build());
 
         if (!bucket.tryConsume(1)) {
-            String requestBody = getRequestBodyAsString(joinPoint);
+            String requestBody = getRequestBodyAsJsonString(joinPoint);
             this.sendSlackMessage(ipAddress, request.getRequestURL().toString(), requestBody);
             this.logRateLimitExceeded(ipAddress, request.getRequestURL().toString(), requestBody);
             throw new RateLimitException(RATE_LIMIT_ERROR);
@@ -72,14 +74,28 @@ public class RateLimitAspect {
         return (attributes != null) ? attributes.getRequest() : null;
     }
 
-    private String getRequestBodyAsString(ProceedingJoinPoint joinPoint) throws UnsupportedEncodingException {
+    private String getRequestBodyAsJsonString(ProceedingJoinPoint joinPoint) throws UnsupportedEncodingException {
         HttpServletRequest request = getRequest(joinPoint);
         if (request instanceof ContentCachingRequestWrapper wrapper) {
             byte[] requestBody = wrapper.getContentAsByteArray();
             String requestBodyString = new String(requestBody, request.getCharacterEncoding());
-            return requestBodyString.isBlank() ? "No request body" : requestBodyString;
+
+            if (isJsonString(requestBodyString)) {
+                return requestBodyString;
+            } else {
+                return "Not a valid JSON format";
+            }
         }
         return null;
+    }
+
+    private boolean isJsonString(String value) {
+        try {
+            new ObjectMapper().readTree(value);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private void logRateLimitExceeded(String ipAddress, String requestUrl, String requestBody) {
