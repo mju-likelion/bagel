@@ -9,4 +9,6 @@ public interface IntroduceRepository extends JpaRepository<Introduce, String> {
     List<Introduce> findAllByPartOrderBySequence(Part part);
 
     Long countByPart(Part part);
+
+    List<Introduce> findAllByPart(Part part);
 }
