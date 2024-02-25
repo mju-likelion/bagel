@@ -9,7 +9,6 @@ import org.mjulikelion.bagel.dto.response.application.FileSaveResponseData;
 import org.mjulikelion.bagel.service.application.ApplicationCommandService;
 import org.mjulikelion.bagel.service.application.ApplicationQueryService;
 import org.mjulikelion.bagel.util.annotaion.file.introduce.IntroduceFileConstraint;
-import org.mjulikelion.bagel.util.annotaion.ratelimit.RateLimit;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,21 +26,18 @@ public class ApplicationController {
     private final ApplicationQueryService applicationQueryService;
     private final ApplicationCommandService applicationCommandService;
 
-    @RateLimit
     @GetMapping("/{part}")
     public ResponseEntity<ResponseDto<ApplicationGetResponseData>> getApplicationByPart(
             @PathVariable("part") String part) {
         return this.applicationQueryService.getApplicationByPart(part);
     }
 
-    @RateLimit
     @PostMapping()
     public ResponseEntity<ResponseDto<Void>> saveApplication(
             @RequestBody @Valid ApplicationSaveDto applicationSaveDto) {
         return this.applicationCommandService.saveApplication(applicationSaveDto);
     }
 
-    @RateLimit
     @PostMapping("/file")
     public ResponseEntity<ResponseDto<FileSaveResponseData>> saveFile(
             @IntroduceFileConstraint @RequestPart MultipartFile file) {

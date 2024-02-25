@@ -10,7 +10,6 @@ import org.mjulikelion.bagel.dto.response.ResponseDto;
 import org.mjulikelion.bagel.dto.response.apply.ApplyExistResponseData;
 import org.mjulikelion.bagel.service.apply.ApplyCommandService;
 import org.mjulikelion.bagel.service.apply.ApplyQueryService;
-import org.mjulikelion.bagel.util.annotaion.ratelimit.RateLimit;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,14 +25,12 @@ public class ApplyController {
     private final ApplyQueryService applyQueryService;
     private final ApplyCommandService applyCommandService;
 
-    @RateLimit
     @GetMapping("/exist/{studentId}")
     public ResponseEntity<ResponseDto<ApplyExistResponseData>> getApplicationExist(
             @PathVariable("studentId") @Pattern(regexp = APPLICATION_STUDENT_ID_PATTERN) @Valid String studentId) {
         return this.applyQueryService.getApplyExist(studentId);
     }
 
-    @RateLimit
     @PostMapping()
     public ResponseEntity<ResponseDto<Void>> saveApply(
             @RequestBody @Valid ApplySaveDto applySaveDto) {
