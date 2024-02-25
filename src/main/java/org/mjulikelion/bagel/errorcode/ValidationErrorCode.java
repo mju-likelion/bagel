@@ -11,7 +11,8 @@ public enum ValidationErrorCode {
     NOT_BLANK("9002", "필수값이 빈 값이거나 공백으로 되어있습니다."),
     REGEX("9003", "형식에 맞지 않습니다."),
     ENUM_CONSTRAINT("9004", "유효하지 않은 Enum 값입니다."),
-    GRADE_CONSTRAINT("9005", "학년이 형식에 맞지 않습니다.");
+    GRADE_CONSTRAINT("9005", "학년이 형식에 맞지 않습니다."),
+    AGREEMENT_ASSERT_TRUE("9006", "동의가 필요합니다.");
 
 
     private final String code;
@@ -25,6 +26,7 @@ public enum ValidationErrorCode {
             case "Pattern" -> REGEX;
             case "EnumConstraint" -> ENUM_CONSTRAINT;
             case "GradeConstraint" -> GRADE_CONSTRAINT;
+            case "AssertTrue" -> AGREEMENT_ASSERT_TRUE;
             default -> throw new IllegalArgumentException("Unexpected value: " + code);
         };
     }
