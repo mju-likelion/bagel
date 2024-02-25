@@ -36,30 +36,30 @@ public class Application {
     @Column(updatable = false, unique = true, nullable = false)
     private UUID id;
 
-    @Column(length = 100)
+    @Column(length = 100, nullable = false)
     private String name;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "major_id")
+    @JoinColumn(name = "major_id", nullable = false)
     private Major major;
 
-    @Column(name = "student_id", length = 8)
+    @Column(name = "student_id", length = 8, unique = true, nullable = false, updatable = false)
     private String studentId;
 
-    @Column(length = 100)
+    @Column(length = 100, nullable = false)
     private String phoneNumber;
 
-    @Column(length = 100)
+    @Column(length = 100, nullable = false)
     private String email;
 
-    @Column(length = 10)
+    @Column(length = 10, nullable = false)
     private String grade;
 
     @Enumerated(EnumType.STRING)
-    @Column
+    @Column(nullable = false)
     private Part part;
 
-    @Column(length = 256)
+    @Column(length = 256, nullable = false)
     private String link;
 
     @CreatedDate
