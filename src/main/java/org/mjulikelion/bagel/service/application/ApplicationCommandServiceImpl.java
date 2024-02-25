@@ -6,17 +6,19 @@ import static org.mjulikelion.bagel.errorcode.ErrorCode.INVALID_AGREEMENT_MISSIN
 import static org.mjulikelion.bagel.errorcode.ErrorCode.INVALID_INTRODUCE_LENGTH_ERROR;
 import static org.mjulikelion.bagel.errorcode.ErrorCode.INVALID_INTRODUCE_MISSING_ERROR;
 import static org.mjulikelion.bagel.errorcode.ErrorCode.INVALID_MAJOR_ERROR;
+import static org.mjulikelion.bagel.errorcode.ErrorCode.JPA_ERROR;
 
+import jakarta.persistence.EntityExistsException;
 import java.util.List;
 import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.mjulikelion.bagel.dto.request.ApplicationSaveDto;
 import org.mjulikelion.bagel.dto.response.ResponseDto;
 import org.mjulikelion.bagel.dto.response.application.FileSaveResponseData;
 import org.mjulikelion.bagel.exception.ApplicationAlreadyExistException;
 import org.mjulikelion.bagel.exception.FileStorageException;
 import org.mjulikelion.bagel.exception.InvalidDataException;
+import org.mjulikelion.bagel.exception.JpaException;
 import org.mjulikelion.bagel.model.Application;
 import org.mjulikelion.bagel.model.ApplicationAgreement;
 import org.mjulikelion.bagel.model.ApplicationIntroduce;
@@ -34,15 +36,17 @@ import org.mjulikelion.bagel.util.s3.S3Service;
 import org.mjulikelion.bagel.util.slack.SlackService;
 import org.mjulikelion.bagel.util.slack.asset.message.SlackApplySaveMessage;
 import org.mjulikelion.bagel.util.slack.asset.message.SlackFileMessage;
+import org.mjulikelion.bagel.vo.ApplicationDetailsVO;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @AllArgsConstructor
-@Slf4j
 public class ApplicationCommandServiceImpl implements ApplicationCommandService {
     private final ApplicationRepository applicationRepository;
     private final MajorRepository majorRepository;
@@ -58,19 +62,12 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
     @Override
     @Transactional
     public ResponseEntity<ResponseDto<Void>> saveApplication(ApplicationSaveDto applicationSaveDto) {
-        if (applicationAlreadyExists(applicationSaveDto.getStudentId())) {
-            throw new ApplicationAlreadyExistException(APPLICATION_ALREADY_EXISTS_ERROR);
-        }
+        String majorId = applicationSaveDto.getMajorId();
+        Major major = this.findMajorById(majorId);
 
-        Major major = this.findMajorById(applicationSaveDto.getMajorId());
-
-        Application application = buildApplicationFromDto(applicationSaveDto, major);
-        List<ApplicationAgreement> agreements = convertAgreements(applicationSaveDto, application);
-        List<ApplicationIntroduce> introduces = convertIntroduces(applicationSaveDto, application);
-
-        saveApplicationWithDetails(application, agreements, introduces);
-
-        this.slackService.sendSlackMessage(new SlackApplySaveMessage(application));
+        ApplicationDetailsVO applicationDetailsVO = this.buildApplicationDetailsVO(applicationSaveDto, major);
+        this.saveApplicationDetailsVO(applicationDetailsVO);
+        this.slackService.sendSlackMessage(new SlackApplySaveMessage(applicationDetailsVO.application()));
 
         return new ResponseEntity<>(ResponseDto.res(HttpStatus.CREATED, "Created"), HttpStatus.CREATED);
     }
@@ -89,13 +86,40 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
     }
 
     /**
-     * 학생 아이디에 해당하는 지원서가 이미 존재하는지 확인.
+     * 지원서 DTO와 Major를 사용하여 ApplicationDetails를 생성.
      *
-     * @param studentId 학번
-     * @return 존재 여부
+     * @param applicationSaveDto 지원서 DTO
+     * @param major              지원서의 Major
+     * @return 생성된 ApplicationDetails 객체
      */
-    private boolean applicationAlreadyExists(String studentId) {
-        return this.applicationRepository.existsByStudentId(studentId);
+    private ApplicationDetailsVO buildApplicationDetailsVO(ApplicationSaveDto applicationSaveDto, Major major) {
+        try {
+            Application application = buildApplicationFromDto(applicationSaveDto, major);
+            List<ApplicationAgreement> agreements = convertAgreements(applicationSaveDto, application);
+            List<ApplicationIntroduce> introduces = convertIntroduces(applicationSaveDto, application);
+            return new ApplicationDetailsVO(application, agreements, introduces);
+        } catch (EntityExistsException | DataIntegrityViolationException e) {
+            throw new ApplicationAlreadyExistException(APPLICATION_ALREADY_EXISTS_ERROR);
+        } catch (JpaSystemException e) {
+            throw new JpaException(JPA_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * ApplicationDetails를 DB에 저장.
+     *
+     * @param applicationDetailsVO ApplicationDetails 객체
+     */
+    private void saveApplicationDetailsVO(ApplicationDetailsVO applicationDetailsVO) {
+        try {
+            this.applicationRepository.saveAndFlush(applicationDetailsVO.application());
+            this.applicationAgreementRepository.saveAll(applicationDetailsVO.agreements());
+            this.applicationIntroduceRepository.saveAll(applicationDetailsVO.introduces());
+        } catch (EntityExistsException | DataIntegrityViolationException e) {
+            throw new ApplicationAlreadyExistException(APPLICATION_ALREADY_EXISTS_ERROR);
+        } catch (JpaSystemException e) {
+            throw new JpaException(JPA_ERROR, e.getMessage());
+        }
     }
 
     /**
@@ -198,9 +222,6 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
      */
     private boolean isValidIntroducesLength(List<ApplicationIntroduce> introduces, Part part) {
         //introduce의 아이디를 DB에 있는 introduce의 아이디와 비교해서 글자수가 맞는지 확인
-        introduces.forEach(introduce -> log.info(String.valueOf(introduce.getContent().length())));
-        this.introduceRepository.findAllByPart(part)
-                .forEach(introduce -> log.info(String.valueOf(introduce.getMaxLength())));
         return IntStream.range(0, introduces.size())
                 .allMatch(i -> introduces.get(i).getContent().length() <= this.introduceRepository.findById(
                         introduces.get(i).getIntroduce().getId()).orElseThrow().getMaxLength());
@@ -219,20 +240,5 @@ public class ApplicationCommandServiceImpl implements ApplicationCommandService 
         if (!isValidIntroducesLength(introduces, part)) {
             throw new InvalidDataException(INVALID_INTRODUCE_LENGTH_ERROR);
         }
-    }
-
-    /**
-     * 지원서, 동의 항목, 자기소개를 저장.
-     *
-     * @param application 지원서
-     * @param agreements  지원서 동의 항목
-     * @param introduces  지원서 자기소개
-     */
-    private void saveApplicationWithDetails(Application application, List<ApplicationAgreement> agreements,
-                                            List<ApplicationIntroduce> introduces) {
-
-        applicationRepository.save(application);
-        applicationAgreementRepository.saveAll(agreements);
-        applicationIntroduceRepository.saveAll(introduces);
     }
 }

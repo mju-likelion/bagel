@@ -4,9 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 import java.util.Date;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,7 +27,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity(name = "history")
 public class History {
     @Id
-    @Column(length = 8, updatable = false, unique = true, nullable = false)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "uuid2")
+    @Column(updatable = false, unique = true, nullable = false)
+    private UUID id;
+
+    @Column(length = 8, updatable = false, nullable = false)
     @NotNull
     private String studentId;
 

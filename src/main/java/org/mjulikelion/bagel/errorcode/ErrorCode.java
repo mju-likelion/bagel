@@ -7,11 +7,11 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ErrorCode {
     //잘못된 요청 오류들
-    RATE_LIMIT_ERROR("4290", "요청이 너무 많습니다."),//요청이 너무 많음
     DATE_RANGE_ERROR("4030", "지원 기간이 아닙니다."),//지원 기간이 아님
     //서버 내부 오류들
     INTERNAL_SERVER_ERROR("5000", "알 수 없는 서버 내부 오류."),//서버 내부 오류
     FILE_STORAGE_ERROR("5001", "파일 저장에 실패하였습니다."),//파일 저장 실패
+    JPA_ERROR("5002", "JPA 오류가 발생하였습니다."),//SQL 오류
     //잘못된 경로, 메소드 오류들
     METHOD_NOT_ALLOWED_ERROR("4050", "허용되지 않은 메소드 입니다."),//허용되지 않은 메소드
     NO_RESOURCE_ERROR("4040", "해당 리소스를 찾을 수 없습니다."),//리소스를 찾을 수 없음(잘못된 URI)
