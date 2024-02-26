@@ -12,6 +12,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.util.Map;
 import lombok.Getter;
+import org.hibernate.validator.constraints.Length;
 import org.mjulikelion.bagel.model.Part;
 import org.mjulikelion.bagel.util.annotaion.enumconstraint.EnumConstraint;
 import org.mjulikelion.bagel.util.annotaion.grade.GradeConstraint;
@@ -36,6 +37,7 @@ public class ApplicationSaveDto {
 
     @NotNull(message = "이메일이 누락되었습니다.")
     @Pattern(regexp = APPLICATION_EMAIL_PATTERN, message = "이메일이 형식에 맞지 않습니다.")
+    @Length(max = 100, message = "이메일은 100자를 넘을 수 없습니다.")
     private String email;//이메일
 
     @NotNull(message = "학년이 누락되었습니다.")
@@ -48,6 +50,7 @@ public class ApplicationSaveDto {
 
     @NotBlank(message = "자기소개 페이지 혹은 GitHub 링크가 누락되었습니다.")
     @Pattern(regexp = APPLICATION_LINK_PATTERN, message = "자기소개 페이지 혹은 GitHub 링크가 형식에 맞지 않습니다.")
+    @Length(max = 255, message = "자기소개 페이지 혹은 GitHub 링크는 255자를 넘을 수 없습니다.")
     private String link;//자기소개 페이지 or GitHub 링크
 
     @NotNull(message = "자기소개가 누락되었습니다.")
