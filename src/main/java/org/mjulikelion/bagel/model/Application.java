@@ -65,6 +65,9 @@ public class Application {
     @CreatedDate
     private Date createdAt;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean isPass;
+
     @OneToMany(mappedBy = "application", orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ApplicationIntroduce> introduces;
 
