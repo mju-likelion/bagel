@@ -1,27 +1,43 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.2.3-SNAPSHOT'
-	id 'io.spring.dependency-management' version '1.1.4'
+    id 'java'
+    id 'org.springframework.boot' version '3.2.3-SNAPSHOT'
+    id 'io.spring.dependency-management' version '1.1.4'
 }
 
 group = 'org.mju-likelion'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	sourceCompatibility = '17'
+    sourceCompatibility = '17'
 }
 
 repositories {
-	mavenCentral()
-	maven { url 'https://repo.spring.io/milestone' }
-	maven { url 'https://repo.spring.io/snapshot' }
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'//JPA
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'//JDBC
+    runtimeOnly 'com.mysql:mysql-connector-j'//MySQL
+    compileOnly 'org.projectlombok:lombok'//Lombok
+    annotationProcessor 'org.projectlombok:lombok'//Lombok
+    implementation 'org.springframework.boot:spring-boot-starter-validation'//Validation(Dto)
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'//Redis
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'//AWS
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'//JAXB
+    implementation("com.slack.api:bolt:1.18.0")//Slack
+    implementation("com.slack.api:bolt-servlet:1.18.0")//Slack
+    implementation("com.slack.api:bolt-jetty:1.18.0")//Slack
+    implementation 'com.bucket4j:bucket4j-core:8.3.0'//Bucket4j(RateLimit)
+    implementation 'org.aspectj:aspectjweaver:1.9.7'//AOP
+
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
