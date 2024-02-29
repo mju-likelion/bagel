@@ -40,7 +40,6 @@ public class ExceptionController {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ResponseDto<Void>> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException methodArgumentNotValidException) {
-        log.error("MethodArgumentNotValidException: {}", methodArgumentNotValidException.getMessage());
         FieldError fieldError = methodArgumentNotValidException.getBindingResult().getFieldError();
         if (fieldError == null) {
             return new ResponseEntity<>(
@@ -50,6 +49,7 @@ public class ExceptionController {
         ValidationErrorCode validationErrorCode = ValidationErrorCode.resolveAnnotation(fieldError.getCode());
         String code = validationErrorCode.getCode();
         String message = validationErrorCode.getMessage() + " : " + fieldError.getDefaultMessage();
+        log.error("MethodArgumentNotValidException: {}", message);
         return new ResponseEntity<>(ResponseDto.res(code, message), HttpStatus.BAD_REQUEST);
     }
 
@@ -58,11 +58,11 @@ public class ExceptionController {
     @ExceptionHandler(HandlerMethodValidationException.class)
     public ResponseEntity<ResponseDto<Void>> handleHandlerMethodValidationException(
             HandlerMethodValidationException handlerMethodValidationException) {
-        log.error("HandlerMethodValidationException: {}", handlerMethodValidationException.getMessage());
         ValidationErrorCode errorCode = ValidationErrorCode.VALIDATION;
         String code = errorCode.getCode();
         String message = errorCode.getMessage() + " : "
                 + handlerMethodValidationException.getDetailMessageArguments()[0].toString();
+        log.error("HandlerMethodValidationException: {}", message);
         return new ResponseEntity<>(ResponseDto.res(code, message), HttpStatus.BAD_REQUEST);
     }
 
@@ -71,10 +71,10 @@ public class ExceptionController {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ResponseDto<Void>> handleHttpMessageNotReadableException(
             org.springframework.http.converter.HttpMessageNotReadableException httpMessageNotReadableException) {
-        log.error("HttpMessageNotReadableException: {}", httpMessageNotReadableException.getMessage());
         ErrorCode errorCode = ErrorCode.INVALID_REQUEST_FORMAT_ERROR;
         String code = errorCode.getCode();
         String message = errorCode.getMessage() + " : " + httpMessageNotReadableException.getMessage();
+        log.error("HttpMessageNotReadableException: {}", message);
         return new ResponseEntity<>(ResponseDto.res(code, message), HttpStatus.BAD_REQUEST);
     }
 
@@ -106,10 +106,10 @@ public class ExceptionController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseDto<Void>> handleException(Exception exception) {
-        log.error("InternalServerException: {}", exception.getMessage());
         ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
         String code = errorCode.getCode();
         String message = errorCode.getMessage() + " : " + exception.getClass();
+        log.error("Exception: {}", message);
         return new ResponseEntity<>(ResponseDto.res(code, message), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -117,10 +117,10 @@ public class ExceptionController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(FileStorageException.class)
     public ResponseEntity<ResponseDto<Void>> handleFileStorageException(FileStorageException fileStorageException) {
-        log.error("FileStorageException: {}", fileStorageException.getMessage());
         ErrorCode errorCode = fileStorageException.getErrorCode();
         String code = errorCode.getCode();
         String message = errorCode.getMessage() + " : " + fileStorageException.getMessage();
+        log.error("FileStorageException: {}", message);
         return new ResponseEntity<>(ResponseDto.res(code, message), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -140,10 +140,10 @@ public class ExceptionController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidDataException.class)
     public ResponseEntity<ResponseDto<Void>> handleInvalidDataException(InvalidDataException invalidDataException) {
-        log.error("InvalidDataException: {}", invalidDataException.getMessage());
         ErrorCode errorCode = invalidDataException.getErrorCode();
         String code = errorCode.getCode();
         String message = errorCode.getMessage();
+        log.error("InvalidDataException: {} : {}", message, invalidDataException.getMessage());
         return new ResponseEntity<>(ResponseDto.res(code, message), HttpStatus.BAD_REQUEST);
     }
 
@@ -151,10 +151,10 @@ public class ExceptionController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(JpaException.class)
     public ResponseEntity<ResponseDto<Void>> handleJpaException(JpaException jpaException) {
-        log.error("SqlException: {}", jpaException.getMessage());
         ErrorCode errorCode = jpaException.getErrorCode();
         String code = errorCode.getCode();
         String message = errorCode.getMessage() + " : " + jpaException.getMessage();
+        log.error("SqlException: {}", message);
         return new ResponseEntity<>(ResponseDto.res(code, message), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
