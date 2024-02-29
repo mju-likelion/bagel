@@ -1,5 +1,7 @@
 package org.mjulikelion.bagel.controller;
 
+import static org.mjulikelion.bagel.errorcode.ErrorCode.HTTP_MEDIA_TYPE_NOT_SUPPORTED_ERROR;
+
 import lombok.extern.slf4j.Slf4j;
 import org.mjulikelion.bagel.dto.response.ResponseDto;
 import org.mjulikelion.bagel.errorcode.ErrorCode;
@@ -13,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -156,5 +159,17 @@ public class ExceptionController {
         String message = errorCode.getMessage() + " : " + jpaException.getMessage();
         log.error("SqlException: {}", message);
         return new ResponseEntity<>(ResponseDto.res(code, message), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    //HttpMediaTypeNotAcceptableException
+    @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<ResponseDto<Void>> handleHttpMediaTypeNotAcceptableException(
+            HttpMediaTypeNotAcceptableException httpMediaTypeNotAcceptableException) {
+        ErrorCode errorCode = HTTP_MEDIA_TYPE_NOT_SUPPORTED_ERROR;
+        String code = errorCode.getCode();
+        String message = errorCode.getMessage() + " : " + httpMediaTypeNotAcceptableException.getMessage();
+        log.error("HttpMediaTypeNotAcceptableException: {}", message);
+        return new ResponseEntity<>(ResponseDto.res(code, message), HttpStatus.NOT_ACCEPTABLE);
     }
 }
