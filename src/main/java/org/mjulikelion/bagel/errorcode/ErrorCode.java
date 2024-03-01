@@ -25,7 +25,10 @@ public enum ErrorCode {
     INVALID_AGREEMENT_ERROR("4004", "유효하지 않은 동의 항목 입니다."),//유효하지 않은 동의 항목
     INVALID_INTRODUCE_MISSING_ERROR("4005", "자기소개 항목이 누락되었습니다."),//자기소개 항목이 누락됨
     INVALID_AGREEMENT_MISSING_ERROR("4006", "동의 항목이 누락되었습니다."),//동의 항목이 누락됨
-    INVALID_INTRODUCE_LENGTH_ERROR("4007", "자기소개 항목의 길이가 유효하지 않습니다.");//자기소개 항목의 길이가 유효하지 않음
+    INVALID_INTRODUCE_LENGTH_ERROR("4007", "자기소개 항목의 길이가 유효하지 않습니다."),//자기소개 항목의 길이가 유효하지 않음
+    //미디어 타입 오류들
+    HTTP_MEDIA_TYPE_NOT_ACCEPTABLE_ERROR("4060", "지원하지 않는 미디어 타입입니다."),//지원하지 않는 미디어 타입
+    HTTP_MEDIA_TYPE_NOT_SUPPORTED_ERROR("4150", "수락할 수 없는 미디어 타입입니다.");//지원하지 않는 미디어 타입
 
 
     private final String code;
