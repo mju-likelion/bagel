@@ -77,7 +77,7 @@ public class ApplicationQueryServiceImpl implements ApplicationQueryService {
      * @return {@code Optional<ApplicationGetResponseData>}
      */
     private Optional<ApplicationGetResponseData> getCachedApplicationGetResponseData(Part partEnum) {
-        return Optional.ofNullable(applicationGetResponseDataStringRedisUtil.select(partEnum.name()));
+        return this.applicationGetResponseDataStringRedisUtil.select(partEnum.name());
     }
 
     /**
