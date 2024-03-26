@@ -12,6 +12,7 @@ import org.mjulikelion.bagel.exception.DateRangeException;
 import org.mjulikelion.bagel.exception.FileStorageException;
 import org.mjulikelion.bagel.exception.InvalidDataException;
 import org.mjulikelion.bagel.exception.JpaException;
+import org.mjulikelion.bagel.exception.RedisException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -185,5 +186,16 @@ public class ExceptionController {
         String message = errorCode.getMessage() + " : " + httpMediaTypeNotSupportedException.getMessage();
         log.error("HttpMediaTypeNotSupportedException: {}", message);
         return new ResponseEntity<>(ResponseDto.res(code, message), HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+    }
+
+    //RedisException 예외를 처리하는 핸들러(Redis 오류가 발생한 경우)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(RedisException.class)
+    public ResponseEntity<ResponseDto<Void>> handleRedisException(RedisException redisException) {
+        ErrorCode errorCode = redisException.getErrorCode();
+        String code = errorCode.getCode();
+        String message = errorCode.getMessage() + " : " + redisException.getMessage();
+        log.error("RedisException: {}", message);
+        return new ResponseEntity<>(ResponseDto.res(code, message), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
