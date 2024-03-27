@@ -2,6 +2,7 @@ package org.mjulikelion.bagel.service.application;
 
 import java.util.List;
 import java.util.Optional;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mjulikelion.bagel.dto.response.ResponseDto;
 import org.mjulikelion.bagel.dto.response.application.ApplicationGetResponseData;
@@ -12,33 +13,20 @@ import org.mjulikelion.bagel.model.Part;
 import org.mjulikelion.bagel.repository.AgreementRepository;
 import org.mjulikelion.bagel.repository.IntroduceRepository;
 import org.mjulikelion.bagel.repository.MajorRepository;
-import org.mjulikelion.bagel.util.redis.RedisUtilFactory;
-import org.mjulikelion.bagel.util.redis.StringRedisUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mjulikelion.bagel.util.redis.RedisUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 @Slf4j
 public class ApplicationQueryServiceImpl implements ApplicationQueryService {
 
     private final IntroduceRepository introduceRepository;
     private final AgreementRepository agreementRepository;
     private final MajorRepository majorRepository;
-    private final StringRedisUtil<ApplicationGetResponseData> applicationGetResponseDataStringRedisUtil;
-
-    @Autowired
-    public ApplicationQueryServiceImpl(IntroduceRepository introduceRepository,
-                                       AgreementRepository agreementRepository,
-                                       MajorRepository majorRepository,
-                                       RedisUtilFactory redisUtilFactory) {
-        this.introduceRepository = introduceRepository;
-        this.agreementRepository = agreementRepository;
-        this.majorRepository = majorRepository;
-        this.applicationGetResponseDataStringRedisUtil = redisUtilFactory.createStringRedisUtil(
-                ApplicationGetResponseData.class);
-    }
+    private final RedisUtil<Part, ApplicationGetResponseData> applicationGetResponseDataRedisUtil;
 
     @Override
     public ResponseEntity<ResponseDto<ApplicationGetResponseData>> getApplicationByPart(String part) {
@@ -66,7 +54,7 @@ public class ApplicationQueryServiceImpl implements ApplicationQueryService {
      * @param applicationGetResponseData ApplicationGetResponseData
      */
     private void cacheApplicationGetResponseData(Part partEnum, ApplicationGetResponseData applicationGetResponseData) {
-        this.applicationGetResponseDataStringRedisUtil.insert(partEnum.name(),
+        this.applicationGetResponseDataRedisUtil.insert(partEnum,
                 applicationGetResponseData);
     }
 
@@ -77,7 +65,7 @@ public class ApplicationQueryServiceImpl implements ApplicationQueryService {
      * @return {@code Optional<ApplicationGetResponseData>}
      */
     private Optional<ApplicationGetResponseData> getCachedApplicationGetResponseData(Part partEnum) {
-        return this.applicationGetResponseDataStringRedisUtil.select(partEnum.name());
+        return this.applicationGetResponseDataRedisUtil.select(partEnum);
     }
 
     /**
